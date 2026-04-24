@@ -1,0 +1,17 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "UEquirectangularCapture",
+	"Description": "Runtime equirectangular preview capture plugin.",
+	"Category": "Rendering",
+	"CreatedBy": "Codex",
+	"CanContainContent": false,
+	"Modules": [
+		{
+			"Name": "UEquirectangularCapture",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit"
+		}
+	]
+}
