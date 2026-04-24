@@ -20,7 +20,7 @@ float3 DirectionFromEquirectUV(float2 UV)
 {
 	const float Pi = 3.14159265358979323846;
 	const float Lon = (UV.x * 2.0f - 1.0f) * Pi;
-	const float Lat = (UV.y - 0.5f) * Pi;
+	const float Lat = (0.5f - UV.y) * Pi;
 	const float CosLat = cos(Lat);
 
 	return float3(
@@ -38,37 +38,33 @@ float2 DirectionToFaceUV(float3 Dir, out uint FaceIndex)
 		if (Dir.x > 0.0f)
 		{
 			FaceIndex = 0;
-			const float2 FaceUV = float2(-Dir.z, Dir.y) / AbsDir.x;
-			return float2(-FaceUV.y, FaceUV.x);
+			return float2(Dir.y, Dir.z) / Dir.x;
 		}
 
 		FaceIndex = 1;
-		const float2 FaceUV = float2(Dir.z, Dir.y) / AbsDir.x;
-		return float2(FaceUV.y, -FaceUV.x);
+		return float2(-Dir.y, Dir.z) / AbsDir.x;
 	}
 
 	if (AbsDir.y >= AbsDir.x && AbsDir.y >= AbsDir.z)
 	{
 		if (Dir.y > 0.0f)
 		{
-			FaceIndex = 3;
-			return float2(Dir.x, -Dir.z) / AbsDir.y;
+			FaceIndex = 2;
+			return float2(-Dir.x, Dir.z) / Dir.y;
 		}
 
-		FaceIndex = 2;
-		return float2(-Dir.x, -Dir.z) / AbsDir.y;
+		FaceIndex = 3;
+		return float2(Dir.x, Dir.z) / AbsDir.y;
 	}
 
 	if (Dir.z > 0.0f)
 	{
-		FaceIndex = 5;
-		const float2 FaceUV = float2(Dir.x, Dir.y) / AbsDir.z;
-		return float2(-FaceUV.y, FaceUV.x);
+		FaceIndex = 4;
+		return float2(Dir.y, -Dir.x) / Dir.z;
 	}
 
-	FaceIndex = 4;
-	const float2 FaceUV = float2(Dir.x, -Dir.y) / AbsDir.z;
-	return float2(FaceUV.y, -FaceUV.x);
+	FaceIndex = 5;
+	return float2(Dir.y, Dir.x) / AbsDir.z;
 }
 
 float4 SampleFace(uint FaceIndex, float2 FaceUV)

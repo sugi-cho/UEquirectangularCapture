@@ -94,12 +94,12 @@ void UEquirectangularCaptureRenderer::Render(UTextureRenderTarget2D* OutputRende
 			FRDGBuilder GraphBuilder(RHICmdList);
 
 			FRDGTextureRef OutputTexture = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(OutputResource->GetRenderTargetTexture(), TEXT("UEquirectangularCapture_Output")));
-			FRDGTextureRef FaceTexture0 = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(FaceResources[0]->GetRenderTargetTexture(), TEXT("UEquirectangularCapture_Face0")));
-			FRDGTextureRef FaceTexture1 = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(FaceResources[1]->GetRenderTargetTexture(), TEXT("UEquirectangularCapture_Face1")));
-			FRDGTextureRef FaceTexture2 = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(FaceResources[2]->GetRenderTargetTexture(), TEXT("UEquirectangularCapture_Face2")));
-			FRDGTextureRef FaceTexture3 = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(FaceResources[3]->GetRenderTargetTexture(), TEXT("UEquirectangularCapture_Face3")));
-			FRDGTextureRef FaceTexture4 = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(FaceResources[4]->GetRenderTargetTexture(), TEXT("UEquirectangularCapture_Face4")));
-			FRDGTextureRef FaceTexture5 = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(FaceResources[5]->GetRenderTargetTexture(), TEXT("UEquirectangularCapture_Face5")));
+			FRDGTextureRef FaceTexture0 = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(FaceResources[0]->GetShaderResourceTexture(), TEXT("UEquirectangularCapture_Face0")));
+			FRDGTextureRef FaceTexture1 = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(FaceResources[1]->GetShaderResourceTexture(), TEXT("UEquirectangularCapture_Face1")));
+			FRDGTextureRef FaceTexture2 = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(FaceResources[2]->GetShaderResourceTexture(), TEXT("UEquirectangularCapture_Face2")));
+			FRDGTextureRef FaceTexture3 = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(FaceResources[3]->GetShaderResourceTexture(), TEXT("UEquirectangularCapture_Face3")));
+			FRDGTextureRef FaceTexture4 = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(FaceResources[4]->GetShaderResourceTexture(), TEXT("UEquirectangularCapture_Face4")));
+			FRDGTextureRef FaceTexture5 = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(FaceResources[5]->GetShaderResourceTexture(), TEXT("UEquirectangularCapture_Face5")));
 
 			FEquirectangularCaptureCS::FParameters* Parameters = GraphBuilder.AllocParameters<FEquirectangularCaptureCS::FParameters>();
 			Parameters->OutputSize = FVector2f((float)OutputSize.X, (float)OutputSize.Y);
@@ -152,7 +152,7 @@ void UEquirectangularCaptureRenderer::RenderFromCube(UTextureRenderTarget2D* Out
 			FRDGBuilder GraphBuilder(RHICmdList);
 
 			FRDGTextureRef OutputTexture = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(OutputResource->GetRenderTargetTexture(), TEXT("UEquirectangularCubeCapture_Output")));
-			FRDGTextureRef CubeTexture = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(CubeResource->GetRenderTargetTexture(), TEXT("UEquirectangularCubeCapture_Cube")));
+			FRDGTextureRef CubeTexture = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(CubeResource->GetShaderResourceTexture(), TEXT("UEquirectangularCubeCapture_Cube")));
 
 			FEquirectangularCubeCaptureCS::FParameters* Parameters = GraphBuilder.AllocParameters<FEquirectangularCubeCaptureCS::FParameters>();
 			Parameters->OutputSize = FVector2f((float)OutputSize.X, (float)OutputSize.Y);
