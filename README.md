@@ -5,6 +5,7 @@ Unreal Engine runtime plugin for capturing six 90-degree scene views and composi
 ## Features
 
 - `AEquirectangularCaptureActor` for Blueprint / Editor placement
+- `AEquirectangularCubeCaptureActor` using one `SceneCaptureComponentCube`
 - Six-direction `SceneCaptureComponent2D` capture
 - Compute shader based equirectangular composition
 - Optional output `TextureRenderTarget2D`
@@ -28,12 +29,25 @@ Then enable the plugin in the project or add it to the `.uproject` plugins list.
 
 ## Usage
 
+### Six Face Actor
+
 1. Place `EquirectangularCaptureActor` in the level.
 2. Set `Face Resolution`, `Preview Width`, and `Preview Height`.
 3. Optionally assign `Output Render Target`.
 4. Enable `Auto Capture` for periodic editor/game updates, or call `CaptureNow()` manually.
 
 If `Output Render Target` is not assigned, the plugin writes to the internal `PreviewRenderTarget`.
+
+### Cube Actor
+
+Use `EquirectangularCubeCaptureActor` when a single cube capture is preferable.
+
+1. Place `EquirectangularCubeCaptureActor` in the level.
+2. Set `Cube Resolution`, `Preview Width`, and `Preview Height`.
+3. Optionally assign `Output Render Target`.
+4. Enable `Auto Capture` or call `CaptureNow()` manually.
+
+The cube actor captures into an internal `TextureRenderTargetCube`, then composes it into the equirectangular output.
 
 ## Editor Capture
 
@@ -47,6 +61,8 @@ In Play mode, `Auto Capture` captures every frame.
 
 ## Blueprint API
 
+Six face actor:
+
 - `CaptureNow()`
 - `RefreshResources()`
 - `GetPreviewRenderTarget()`
@@ -54,6 +70,14 @@ In Play mode, `Auto Capture` captures every frame.
 - `SetFaceEnabled(Face, bEnabled)`
 - `IsFaceEnabled(Face)`
 - `SetAllFacesEnabled(bEnabled)`
+
+Cube actor:
+
+- `CaptureNow()`
+- `RefreshResources()`
+- `GetPreviewRenderTarget()`
+- `GetOutputRenderTarget()`
+- `GetCubeRenderTarget()`
 
 ## Notes
 

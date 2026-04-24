@@ -1,6 +1,7 @@
 #include "EquirectangularCaptureRenderer.h"
 
 #include "Engine/TextureRenderTarget2D.h"
+#include "Engine/TextureRenderTargetCube.h"
 #include "GlobalShader.h"
 #include "RenderGraphBuilder.h"
 #include "RenderGraphUtils.h"
@@ -32,6 +33,27 @@ public:
 };
 
 IMPLEMENT_GLOBAL_SHADER(FEquirectangularCaptureCS, "/UEquirectangularCapture/EquirectangularCapture.usf", "MainCS", SF_Compute);
+
+class FEquirectangularCubeCaptureCS : public FGlobalShader
+{
+	DECLARE_GLOBAL_SHADER(FEquirectangularCubeCaptureCS);
+	SHADER_USE_PARAMETER_STRUCT(FEquirectangularCubeCaptureCS, FGlobalShader);
+
+public:
+	BEGIN_SHADER_PARAMETER_STRUCT(FParameters, )
+		SHADER_PARAMETER(FVector2f, OutputSize)
+		SHADER_PARAMETER_SAMPLER(SamplerState, CubeSampler)
+		SHADER_PARAMETER_RDG_TEXTURE(TextureCube, CubeTexture)
+		SHADER_PARAMETER_RDG_TEXTURE_UAV(RWTexture2D<float4>, OutputTexture)
+	END_SHADER_PARAMETER_STRUCT()
+
+	static bool ShouldCompilePermutation(const FGlobalShaderPermutationParameters&)
+	{
+		return true;
+	}
+};
+
+IMPLEMENT_GLOBAL_SHADER(FEquirectangularCubeCaptureCS, "/UEquirectangularCapture/EquirectangularCapture.usf", "MainCubeCS", SF_Compute);
 
 void UEquirectangularCaptureRenderer::Render(UTextureRenderTarget2D* OutputRenderTarget, const TArray<TObjectPtr<UTextureRenderTarget2D>>& FaceRenderTargets, uint32 EnabledFaceMask)
 {
@@ -100,6 +122,53 @@ void UEquirectangularCaptureRenderer::Render(UTextureRenderTarget2D* OutputRende
 			FComputeShaderUtils::AddPass(
 				GraphBuilder,
 				RDG_EVENT_NAME("UEquirectangularCapture"),
+				ComputeShader,
+				Parameters,
+				GroupCount);
+
+			GraphBuilder.Execute();
+		});
+}
+
+void UEquirectangularCaptureRenderer::RenderFromCube(UTextureRenderTarget2D* OutputRenderTarget, UTextureRenderTargetCube* CubeRenderTarget)
+{
+	if (!OutputRenderTarget || !CubeRenderTarget)
+	{
+		return;
+	}
+
+	FTextureRenderTargetResource* OutputResource = OutputRenderTarget->GameThread_GetRenderTargetResource();
+	FTextureRenderTargetResource* CubeResource = CubeRenderTarget->GameThread_GetRenderTargetResource();
+	if (!OutputResource || !CubeResource)
+	{
+		return;
+	}
+
+	const FIntPoint OutputSize(OutputRenderTarget->SizeX, OutputRenderTarget->SizeY);
+
+	ENQUEUE_RENDER_COMMAND(RenderEquirectangularCubeCapture)(
+		[OutputResource, CubeResource, OutputSize](FRHICommandListImmediate& RHICmdList)
+		{
+			FRDGBuilder GraphBuilder(RHICmdList);
+
+			FRDGTextureRef OutputTexture = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(OutputResource->GetRenderTargetTexture(), TEXT("UEquirectangularCubeCapture_Output")));
+			FRDGTextureRef CubeTexture = GraphBuilder.RegisterExternalTexture(CreateRenderTarget(CubeResource->GetRenderTargetTexture(), TEXT("UEquirectangularCubeCapture_Cube")));
+
+			FEquirectangularCubeCaptureCS::FParameters* Parameters = GraphBuilder.AllocParameters<FEquirectangularCubeCaptureCS::FParameters>();
+			Parameters->OutputSize = FVector2f((float)OutputSize.X, (float)OutputSize.Y);
+			Parameters->CubeSampler = TStaticSamplerState<SF_Bilinear>::GetRHI();
+			Parameters->CubeTexture = CubeTexture;
+			Parameters->OutputTexture = GraphBuilder.CreateUAV(OutputTexture);
+
+			TShaderMapRef<FEquirectangularCubeCaptureCS> ComputeShader(GetGlobalShaderMap(GMaxRHIFeatureLevel));
+			const FIntVector GroupCount(
+				FMath::DivideAndRoundUp(OutputSize.X, 8),
+				FMath::DivideAndRoundUp(OutputSize.Y, 8),
+				1);
+
+			FComputeShaderUtils::AddPass(
+				GraphBuilder,
+				RDG_EVENT_NAME("UEquirectangularCubeCapture"),
 				ComputeShader,
 				Parameters,
 				GroupCount);

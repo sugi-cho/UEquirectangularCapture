@@ -13,6 +13,9 @@ Texture2D FaceTexture4;
 Texture2D FaceTexture5;
 SamplerState FaceSampler;
 
+TextureCube CubeTexture;
+SamplerState CubeSampler;
+
 float3 DirectionFromEquirectUV(float2 UV)
 {
 	const float Pi = 3.14159265358979323846;
@@ -124,4 +127,17 @@ void MainCS(uint3 DispatchThreadId : SV_DispatchThreadID)
 	const float3 Direction = DirectionFromEquirectUV(UV);
 	const float2 FaceUV = DirectionToFaceUV(Direction, FaceIndex);
 	OutputTexture[DispatchThreadId.xy] = SampleFace(FaceIndex, FaceUV);
+}
+
+[numthreads(8, 8, 1)]
+void MainCubeCS(uint3 DispatchThreadId : SV_DispatchThreadID)
+{
+	if (DispatchThreadId.x >= (uint)OutputSize.x || DispatchThreadId.y >= (uint)OutputSize.y)
+	{
+		return;
+	}
+
+	const float2 UV = (float2(DispatchThreadId.xy) + 0.5f) / OutputSize.xy;
+	const float3 Direction = DirectionFromEquirectUV(UV);
+	OutputTexture[DispatchThreadId.xy] = CubeTexture.SampleLevel(CubeSampler, Direction, 0.0f);
 }
