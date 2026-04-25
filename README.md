@@ -82,3 +82,16 @@ Cube actor:
 ## Notes
 
 The compute shader writes to an internal UAV-capable render target first. If an external output render target is assigned, the result is copied into it afterward, so the external target does not need to be UAV-capable.
+
+## Benchmark Reference
+
+Test machine: NVIDIA GeForce RTX 4070 Ti.
+
+Editor benchmark results in the current scene:
+
+- `1024` face resolution, `2048x1024` preview: `Cube` became faster at `3` enabled faces.
+- `512` face resolution, `2048x1024` preview: `Cube` became faster at `3` enabled faces.
+- `1024` face resolution, `4096x2048` preview: `Cube` became faster at `4` enabled faces.
+- `2048` face resolution, `8192x4096` preview: `SixFace` stayed faster or equal for all tested face counts.
+
+These numbers are scene-dependent and should be treated as reference data, not a fixed rule.
