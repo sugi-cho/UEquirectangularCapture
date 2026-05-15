@@ -2,6 +2,12 @@
 
 Unreal Engine runtime plugin for capturing six 90-degree scene views and composing them into an equirectangular render target.
 
+## Author
+
+- Author: Hironori Sugino
+- Website: https://sugi.cc
+- Original Repository: https://github.com/sugi-cho/UEquirectangularCapture
+
 ## Features
 
 - `AEquirectangularCaptureActor` for Blueprint / Editor placement
