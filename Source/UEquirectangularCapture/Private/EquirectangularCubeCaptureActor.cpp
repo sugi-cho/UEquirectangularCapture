@@ -5,6 +5,7 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Engine/TextureRenderTargetCube.h"
 #include "EquirectangularCaptureRenderer.h"
+#include "EquirectangularRenderTargetUtils.h"
 
 AEquirectangularCubeCaptureActor::AEquirectangularCubeCaptureActor()
 {
@@ -107,13 +108,8 @@ void AEquirectangularCubeCaptureActor::RequestEditorCapture()
 void AEquirectangularCubeCaptureActor::InitializeRenderTargets()
 {
 	const int32 SafeCubeResolution = FMath::Max(64, CubeResolution);
-	const int32 SafePreviewWidth = FMath::Max(64, OutputRenderTarget ? OutputRenderTarget->SizeX : PreviewWidth);
-	const int32 SafePreviewHeight = FMath::Max(32, OutputRenderTarget ? OutputRenderTarget->SizeY : PreviewHeight);
-	const TEnumAsByte<ETextureRenderTargetFormat> PreviewFormat =
-		OutputRenderTarget ? OutputRenderTarget->RenderTargetFormat : TEnumAsByte<ETextureRenderTargetFormat>(ETextureRenderTargetFormat::RTF_RGBA8);
-    const bool bPreviewSRGB = OutputRenderTarget ? OutputRenderTarget->SRGB : true;
-    const bool bPreviewForceLinearGamma = OutputRenderTarget ? OutputRenderTarget->bForceLinearGamma : false;
-	const float PreviewGamma = OutputRenderTarget ? OutputRenderTarget->TargetGamma : 0.0f;
+	const UEquirectangularCapture::FRenderTargetSettings PreviewSettings =
+		UEquirectangularCapture::MakePreviewSettingsFromOutput(OutputRenderTarget, PreviewWidth, PreviewHeight);
 
 	if (!CubeRenderTarget)
 	{
@@ -135,28 +131,7 @@ void AEquirectangularCubeCaptureActor::InitializeRenderTargets()
 		PreviewRenderTarget = NewObject<UTextureRenderTarget2D>(this, TEXT("CubePreviewRenderTarget"));
 	}
 
-	const bool bNeedsPreviewRecreate =
-		!PreviewRenderTarget->GetResource() ||
-		!PreviewRenderTarget->bSupportsUAV ||
-		PreviewRenderTarget->SizeX != SafePreviewWidth ||
-		PreviewRenderTarget->SizeY != SafePreviewHeight ||
-		PreviewRenderTarget->RenderTargetFormat != PreviewFormat ||
-		PreviewRenderTarget->bForceLinearGamma != bPreviewForceLinearGamma ||
-		!FMath::IsNearlyEqual(PreviewRenderTarget->TargetGamma, PreviewGamma);
-
-	PreviewRenderTarget->bSupportsUAV = true;
-	PreviewRenderTarget->bForceLinearGamma = bPreviewForceLinearGamma;
-        PreviewRenderTarget->TargetGamma = PreviewGamma;
-        PreviewRenderTarget->UpdateResourceImmediate(true);
-
-	if (bNeedsPreviewRecreate)
-	{
-		PreviewRenderTarget->ClearColor = FLinearColor::Black;
-        PreviewRenderTarget->RenderTargetFormat = PreviewFormat;
-        PreviewRenderTarget->SRGB = bPreviewSRGB;
-        PreviewRenderTarget->InitCustomFormat(SafePreviewWidth, SafePreviewHeight, PF_B8G8R8A8, bPreviewSRGB);
-		PreviewRenderTarget->UpdateResourceImmediate(true);
-	}
+	UEquirectangularCapture::EnsureRenderTargetMatchesSettings(PreviewRenderTarget, PreviewSettings);
 
 	if (OutputRenderTarget && !OutputRenderTarget->GetResource())
 	{
