@@ -21,7 +21,7 @@ AEquirectangularCubeCaptureActor::AEquirectangularCubeCaptureActor()
 	CubeCapture->bCaptureOnMovement = false;
 	CubeCapture->bAlwaysPersistRenderingState = true;
 	CubeCapture->bCaptureRotation = true;
-	CubeCapture->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
+	CubeCapture->CaptureSource = ESceneCaptureSource::SCS_FinalToneCurveHDR;
 }
 
 void AEquirectangularCubeCaptureActor::OnConstruction(const FTransform& Transform)

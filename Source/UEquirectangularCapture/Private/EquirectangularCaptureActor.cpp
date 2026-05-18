@@ -52,7 +52,7 @@ void AEquirectangularCaptureActor::InitializeCaptureComponents()
 		Capture->bCaptureOnMovement = false;
 		Capture->bAlwaysPersistRenderingState = true;
 		Capture->FOVAngle = 90.0f;
-		Capture->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
+		Capture->CaptureSource = ESceneCaptureSource::SCS_FinalToneCurveHDR;
 		FaceCaptures.Add(Capture);
 	}
 }
