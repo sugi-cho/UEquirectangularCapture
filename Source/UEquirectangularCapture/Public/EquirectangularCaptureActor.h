@@ -5,8 +5,10 @@
 #include "EquirectangularCaptureActor.generated.h"
 
 class USceneCaptureComponent2D;
+class USceneCaptureComponentCube;
 class USceneComponent;
 class UTextureRenderTarget2D;
+class UTextureRenderTargetCube;
 
 UENUM(BlueprintType)
 enum class EEquirectangularCaptureFace : uint8
@@ -65,6 +67,8 @@ private:
 	uint32 GetEnabledFaceMask() const;
 	UTextureRenderTarget2D* GetRenderTargetForOutput() const;
 	void RenderPreview();
+	void RenderPreviewFromFaces();
+	void RenderPreviewFromCube();
 
 #if WITH_EDITOR
 	void RequestEditorCapture();
@@ -76,8 +80,14 @@ private:
 	UPROPERTY(VisibleAnywhere, Transient, Category = "Components")
 	TArray<TObjectPtr<USceneCaptureComponent2D>> FaceCaptures;
 
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	TObjectPtr<USceneCaptureComponentCube> CubeCapture;
+
 	UPROPERTY(VisibleAnywhere, Transient)
 	TArray<TObjectPtr<UTextureRenderTarget2D>> FaceRenderTargets;
+
+	UPROPERTY(VisibleAnywhere, Transient)
+	TObjectPtr<UTextureRenderTargetCube> CubeRenderTarget;
 
 	UPROPERTY(VisibleAnywhere, Transient)
 	TObjectPtr<UTextureRenderTarget2D> PreviewRenderTarget;
@@ -96,6 +106,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Capture", meta = (AllowPrivateAccess = "true"))
 	bool bAutoCapture = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Capture", meta = (AllowPrivateAccess = "true", DisplayName = "Use Synchronized Cube Capture", ToolTip = "Capture all directions in one cube capture and convert it to equirectangular output. Disable to use the legacy 6x SceneCapture2D path."))
+	bool bUseSynchronizedCubeCapture = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Capture", meta = (AllowPrivateAccess = "true", ClampMin = "0.1", UIMin = "0.1"))
 	float EditorCaptureInterval = 1.0f;

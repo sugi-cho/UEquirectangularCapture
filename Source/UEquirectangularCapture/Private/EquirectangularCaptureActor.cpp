@@ -1,8 +1,10 @@
 #include "EquirectangularCaptureActor.h"
 
 #include "Components/SceneCaptureComponent2D.h"
+#include "Components/SceneCaptureComponentCube.h"
 #include "Components/SceneComponent.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "Engine/TextureRenderTargetCube.h"
 #include "EquirectangularCaptureRenderer.h"
 #include "EquirectangularRenderTargetUtils.h"
 
@@ -56,6 +58,15 @@ void AEquirectangularCaptureActor::InitializeCaptureComponents()
 		Capture->CaptureSource = ESceneCaptureSource::SCS_FinalToneCurveHDR;
 		FaceCaptures.Add(Capture);
 	}
+
+	CubeCapture = CreateDefaultSubobject<USceneCaptureComponentCube>(TEXT("CubeCapture"));
+	CubeCapture->SetupAttachment(SceneRoot);
+	CubeCapture->SetRelativeLocation(FVector::ZeroVector);
+	CubeCapture->bCaptureEveryFrame = false;
+	CubeCapture->bCaptureOnMovement = false;
+	CubeCapture->bAlwaysPersistRenderingState = true;
+	CubeCapture->bCaptureRotation = true;
+	CubeCapture->CaptureSource = ESceneCaptureSource::SCS_FinalToneCurveHDR;
 }
 
 void AEquirectangularCaptureActor::OnConstruction(const FTransform& Transform)
@@ -169,6 +180,24 @@ void AEquirectangularCaptureActor::InitializeRenderTargets()
 		FaceCaptures[Index]->TextureTarget = FaceRT;
 	}
 
+	if (!CubeRenderTarget)
+	{
+		CubeRenderTarget = NewObject<UTextureRenderTargetCube>(this, TEXT("CubeRenderTarget"));
+	}
+
+	if (CubeRenderTarget->SizeX != SafeFaceResolution || !CubeRenderTarget->GetResource())
+	{
+		CubeRenderTarget->ClearColor = FLinearColor::Black;
+		CubeRenderTarget->bHDR = false;
+		CubeRenderTarget->Init(SafeFaceResolution, PF_B8G8R8A8);
+		CubeRenderTarget->UpdateResourceImmediate(true);
+	}
+
+	if (CubeCapture)
+	{
+		CubeCapture->TextureTarget = CubeRenderTarget;
+	}
+
 	if (!PreviewRenderTarget)
 	{
 		PreviewRenderTarget = NewObject<UTextureRenderTarget2D>(this, TEXT("PreviewRenderTarget"));
@@ -201,6 +230,18 @@ void AEquirectangularCaptureActor::CaptureNow()
 {
 	RefreshResources();
 
+	if (bUseSynchronizedCubeCapture)
+	{
+		if (CubeCapture && CubeRenderTarget)
+		{
+			CubeCapture->TextureTarget = CubeRenderTarget;
+			CubeCapture->CaptureScene();
+		}
+
+		RenderPreviewFromCube();
+		return;
+	}
+
 	for (int32 Index = 0; Index < FaceCount; ++Index)
 	{
 		if (!FaceCaptures.IsValidIndex(Index) || !FaceCaptures[Index] || !FaceRenderTargets.IsValidIndex(Index) || !FaceRenderTargets[Index])
@@ -215,12 +256,30 @@ void AEquirectangularCaptureActor::CaptureNow()
 		}
 	}
 
-	RenderPreview();
+	RenderPreviewFromFaces();
 }
 
 void AEquirectangularCaptureActor::RenderPreview()
 {
+	if (bUseSynchronizedCubeCapture)
+	{
+		RenderPreviewFromCube();
+	}
+	else
+	{
+		RenderPreviewFromFaces();
+	}
+}
+
+void AEquirectangularCaptureActor::RenderPreviewFromFaces()
+{
 	UEquirectangularCaptureRenderer::Render(PreviewRenderTarget, FaceRenderTargets, GetEnabledFaceMask());
+	UEquirectangularCaptureRenderer::CopyToRenderTarget(PreviewRenderTarget, OutputRenderTarget);
+}
+
+void AEquirectangularCaptureActor::RenderPreviewFromCube()
+{
+	UEquirectangularCaptureRenderer::RenderFromCube(PreviewRenderTarget, CubeRenderTarget);
 	UEquirectangularCaptureRenderer::CopyToRenderTarget(PreviewRenderTarget, OutputRenderTarget);
 }
 

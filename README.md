@@ -13,6 +13,7 @@ Unreal Engine runtime plugin for capturing six 90-degree scene views and composi
 - `AEquirectangularCaptureActor` for Blueprint / Editor placement
 - `AEquirectangularCubeCaptureActor` using one `SceneCaptureComponentCube`
 - Six-direction `SceneCaptureComponent2D` capture
+- Optional synchronized cube-capture mode for the six-face actor
 - Compute shader based equirectangular composition
 - Optional output `TextureRenderTarget2D`
 - Internal preview render target fallback
@@ -39,8 +40,11 @@ Then enable the plugin in the project or add it to the `.uproject` plugins list.
 
 1. Place `EquirectangularCaptureActor` in the level.
 2. Set `Face Resolution`, `Preview Width`, and `Preview Height`.
-3. Optionally assign `Output Render Target`.
-4. Enable `Auto Capture` for periodic editor/game updates, or call `CaptureNow()` manually.
+3. Optionally enable `Use Synchronized Cube Capture` to capture all directions in one pass.
+4. Optionally assign `Output Render Target`.
+5. Enable `Auto Capture` for periodic editor/game updates, or call `CaptureNow()` manually.
+
+When `Use Synchronized Cube Capture` is enabled, the actor uses a single cube capture and then converts it to equirectangular output. Disable it to use the legacy six `SceneCaptureComponent2D` path.
 
 If `Output Render Target` is not assigned, the plugin writes to the internal `PreviewRenderTarget`.
 
